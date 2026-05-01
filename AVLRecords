@@ -1,0 +1,151 @@
+/**
+ * Extends recordBST and makes it self balanceing AVL tree
+ * 
+ * overrides insert and remove to make them self balancing
+ */
+public class AVLRecords extends RecordBST {
+
+    /**
+     * Constructs an empty AVL tree
+     */
+    public AVLRecords() {
+        super();
+    }
+
+    /**
+     * Inserts a record into the AVL tree
+     * maintains balance
+     * 
+     * @param r is the record to insert
+     */
+    @Override
+    public void insert(Record r) {
+        root = avlInsert(root, r);
+    }
+
+    /**
+     * Removes a record from the AVL tree
+     * maintains balance
+     * 
+     * @param r is the record to remove
+     */
+    @Override
+    public void remove(Record r) {
+        root = avlRemove(root, r);
+    }
+
+    /**
+     * Recursive helper function for insert
+     * Rebalances
+     * 
+     * @param node current sub tree root
+     * @param r is the record to insert
+     * @return the new subtree root
+     */
+    private Node avlInsert(Node node, Record r) {
+        if (node == null) return new Node(r);
+
+        int comparisonNum = r.compareTo(node.value);
+        if (comparisonNum < 0) {
+            node.left = avlInsert(node.left, r);
+        } else if (comparisonNum > 0) {
+            node.right = avlInsert(node.right, r);
+        } else {
+            return node; 
+        }
+
+        node.updateNode();
+        return rebalance(node);
+    }
+
+    /**
+     * Recursive helper function for remove
+     * Rebalances
+     * 
+     * @param node current sub tree root
+     * @param r is the record to remove
+     * @return new new subtree root
+     */
+    private Node avlRemove(Node node, Record r) {
+        if (node == null) return null;
+
+        int comparisonNum = r.compareTo(node.value);
+        if (comparisonNum < 0) {
+            node.left = avlRemove(node.left, r);
+        } else if (comparisonNum > 0) {
+            node.right = avlRemove(node.right, r);
+        } else {
+            if (node.left == null) return node.right;
+            if (node.right == null) return node.left;
+
+            Node successor = findMin(node.right);
+            node.value = successor.value;
+            node.right = avlRemove(node.right, successor.value);
+        }
+
+        node.updateNode();
+        return rebalance(node);
+    }
+
+    /**
+     * Checks the balance factor 
+     * then applys the single or double rotation
+     * if needed
+     * 
+     * @param node the node to check
+     * @return the new subtree root after any rotataions
+     */
+    private Node rebalance(Node node) {
+        int bf = node.balanceFactor;
+
+        if (bf > 1) {
+            if (node.left.balanceFactor < 0) {
+                node.left = rotateLeft(node.left);
+            }
+            return rotateRight(node);
+        }
+
+        if (bf < -1) {
+            if (node.right.balanceFactor > 0) {
+                node.right = rotateRight(node.right);
+            }
+            return rotateLeft(node);
+        }
+
+        return node; 
+    }
+
+    /**
+     * preforms a right rotation around a given node
+     * 
+     * @param node to rotate around
+     * @return the new subtree root
+     */
+    private Node rotateRight(Node node) {
+        Node newRoot = node.left;
+        node.left = newRoot.right;
+        newRoot.right = node;
+
+        node.updateNode();
+        newRoot.updateNode();
+
+        return newRoot;
+    }
+
+    /**
+     * preforms a left rotation around a given node
+     * 
+     * @param node to rotate around
+     * @return the new subtree root
+     */
+    private Node rotateLeft(Node node) {
+        Node newRoot = node.right;
+        node.right = newRoot.left;
+        newRoot.left = node;
+
+        node.updateNode();
+        newRoot.updateNode();
+
+        return newRoot;
+    }
+}
